@@ -1,37 +1,45 @@
--- En ServerScriptService
-local killEvent = game.ReplicatedStorage:WaitForChild("KillAll")
+-- Crear GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KillGui"
+ScreenGui.ResetOnSpawn = false
 
--- Solo Gonchhi01 puede usarlo
-local admins = {
-    [2160555918] = true
-}
+-- Soporte para inyección externa
+if syn and syn.protect_gui then
+    syn.protect_gui(ScreenGui)
+end
 
-killEvent.OnServerEvent:Connect(function(player)
-    if not admins[player.UserId] then
-        warn(player.Name .. " intentó usar KillAll sin permisos.")
-        return
-    end
+ScreenGui.Parent = game:GetService("CoreGui")
 
-    for _, target in pairs(game.Players:GetPlayers()) do
-        if target ~= player and target.Character then
-            local char = target.Character
+-- Botón
+local Button = Instance.new("TextButton")
+Button.Size = UDim2.new(0, 140, 0, 40)
+Button.Position = UDim2.new(0, 10, 0, 10)
+Button.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.Font = Enum.Font.SourceSansBold
+Button.TextSize = 20
+Button.Text = "💀 KILL ALL"
+Button.Parent = ScreenGui
+Button.BorderSizePixel = 0
+Button.BackgroundTransparency = 0.1
 
-            -- Destruir ForceField si tiene
+-- Función al presionar
+Button.MouseButton1Click:Connect(function()
+    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+        local char = player.Character
+        if char then
             local ff = char:FindFirstChildOfClass("ForceField")
             if ff then ff:Destroy() end
 
-            -- Intentar remover regeneraciones
-            local humanoid = char:FindFirstChildWhichIsA("Humanoid")
-            if humanoid then
-                -- Cancelar HealthChanged por seguridad
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
                 if getconnections then
-                    for _, conn in pairs(getconnections(humanoid.HealthChanged)) do
-                        conn:Disable()
+                    for _, conn in pairs(getconnections(hum.HealthChanged)) do
+                        pcall(function() conn:Disable() end)
                     end
                 end
 
-                -- Matar por daño directo
-                humanoid:TakeDamage(humanoid.MaxHealth + 100)
+                hum:TakeDamage(hum.MaxHealth + 999)
             end
         end
     end
